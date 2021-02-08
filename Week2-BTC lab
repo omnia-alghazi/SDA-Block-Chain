@@ -1,0 +1,5 @@
+listunspent
+gettxout "d16cc437e029" 1
+createrawtransaction '[{"txid": "d16cc437e029", "vout": 1 }]''{"tb1q5mjyyx7dl2ugs7l3s":0.00001000,"tb1qesukk2n088vld6wpp8szxq99yd8et83hdudq7h":0.00000001}'
+signrawtransactionwithwallet "020000000129405e600000000"
+sendrawtransaction "0200000000010129405e6ae4cb3900000160014a00000000"
