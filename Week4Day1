@@ -1,0 +1,21 @@
+pragma solidity >=0.6.0 <0.8.0;
+
+contract Math{
+
+    function isMultiple(uint8 _n, uint8 _m) public pure returns(bool) {
+        
+        // Write your code here
+         return (_n % _m) == _m;
+    
+    }
+    
+    function max(uint256 _n, uint256 _m) public pure returns(uint256) {
+        // Write your code here   
+      if (_n > _m){
+           return _n; 
+           } 
+       else {
+           return _m;  
+           }
+    }
+}
