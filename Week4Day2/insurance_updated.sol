@@ -1,5 +1,6 @@
+
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity >=0.6.0 <0.8.1;
 
 /**
  * @title Tech Insurance tor
@@ -13,13 +14,11 @@ pragma solidity ^0.8.0;
  * Step6: implement ERC 721 Token to this contract and change what it needs to be changed. 
  * 
  */
-// import "./timestamp.sol" ;
-import "../github/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-contract TechInsurance is ERC721 {
-
-//contract TechInsurance is, ERC721 {
-
-//event LogRefund(address client, uint time);
+ 
+//import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721.sol";
+import "github/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+contract TechInsurance is ERC721("test","TST"){
+    
     /** 
      * Defined two structs
      * 
@@ -35,79 +34,68 @@ contract TechInsurance is ERC721 {
     struct Client {
         bool isValid;
         uint time;
-
     }
     
+    
 
+    
+     modifier OnlyinsOwner(uint _prodID) {
+         require(msg.sender == ownerOf(_prodID));
+         _;
+    }
+         modifier TimeCheck {
+         require(block.timestamp <= timeLocked + 15 minutes );
+         _;
+     }
+    
     mapping(uint => Product) public productIndex;
     mapping(address => mapping(uint => Client)) public client;
-    
+    uint256 timeLocked = block.timestamp;
     uint productCounter;
     
-    address payable insOwner;
-    
-    // constructor is like the class + permission
-    
-    constructor(address payable _insOwner) public ERC721("Elite", "code"){
-      insOwner = _insOwner;
-   }
+     address payable insOwner;
+    // constructor(address payable _insOwner) public{
+    //     insOwner = _insOwner;
+    // }
  
-    function addProduct(uint _productId, string memory _productName, uint _price ) public {
-        require(msg.sender == insOwner);
-        productCounter++;
-        Product memory newProduct =Product(_productId, _productName, _price, true);
-        productIndex[productCounter++] = newProduct;
-        _mint(msg.sender, productCounter);
+    function addProduct(uint _productId, string memory _productName, uint _price ) public  {
+        
+       productCounter++;
+       address  prodOwner = msg.sender;
+       productIndex[productCounter]= Product(_productId, _productName, _price, true);
+       _mint(prodOwner, productCounter);
     }
     
     
-    function doNotOffer(uint _productIndex) public {
-        require(msg.sender == insOwner, "I'm not offer it");
+    function doNotOffer(uint _productIndex) public  {
+
         productIndex[_productIndex].offered = false;
-
     }
     
-    function forOffer(uint _productIndex) public {
-        require(msg.sender == insOwner, "I'm offer it");
+    function forOffer(uint _productIndex) public OnlyinsOwner(_productIndex) {
+        
         productIndex[_productIndex].offered = true;
-
-    }
-
-    function changePrice(uint _productIndex, uint _price) public {
-        require(insOwner == msg.sender, "you are not the owner");
-        productIndex[_productIndex].price = _price;
-        //why changePrice not setPrice
-        //why >=1
     }
     
-    // handling the error
+    function changePrice(uint _productIndex, uint _price) public OnlyinsOwner(_productIndex) {
+
+        productIndex[_productIndex].price = _price;
+        
+    }
+    
     /**
     * @dev 
     * Every client buys an insurance, 
     * you need to map the client's address to the id of product to struct client, using (client map)
     */
     
-     function buyInsurance(uint _productIndex) public payable {
-        require(productIndex[_productIndex].price == msg.value, "Not appropriate" );
-        require( productIndex[_productIndex].price == 0, "Not valid index");
-        
-        Client memory newClient;
-        newClient.isValid = true;
-        newClient.time = block.number;
-        client[msg.sender][_productIndex] = newClient;
-        insOwner.transfer(msg.value);
-        
-    } 
-  
-  /**  
-    function refund(uint _client) public returns(bool) {
-    require(client > 0);
-    require(client <= time[msg.value]);
-    price[msg.sender] -= client;
-    LogRefund(msg.sender, client);
-    msg.sender.transfer(client);
-    return true;
-}
-*/
+    function buyInsurance(uint _productIndex) public payable  {
+        require(productIndex[_productIndex].offered == true, "This item is sold out!");
+        require(msg.value <= productIndex[_productIndex].price, "You don't have enough tokens!");
+        doNotOffer(_productIndex);        
+        Client(true, block.timestamp);
+        _transfer(ownerOf(_productIndex), msg.sender,_productIndex);   
+        doNotOffer(_productIndex);    
     } 
     
+}
